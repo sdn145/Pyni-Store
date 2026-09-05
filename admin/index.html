@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Pyni store</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen p-4 sm:p-6">
+  <div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
+      <div>
+        <h1 class="text-xl font-extrabold text-cyan-400 font-mono-code uppercase">Pyni store - Admin</h1>
+        <p class="text-xs text-zinc-400">Ringkasan Penjualan & Pesanan Bot</p>
+      </div>
+      <button onclick="location.reload()" class="px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 text-xs hover:bg-zinc-800 transition">
+        Refresh Data
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-zinc-900/60 border border-zinc-800 p-4 rounded-xl">
+        <p class="text-xs text-zinc-400">Total Omzet</p>
+        <p id="stat-omzet" class="text-xl font-extrabold text-emerald-400 mt-1">Rp 0</p>
+      </div>
+      <div class="bg-zinc-900/60 border border-zinc-800 p-4 rounded-xl">
+        <p class="text-xs text-zinc-400">Total Pesanan</p>
+        <p id="stat-pesanan" class="text-xl font-extrabold text-cyan-400 mt-1">0</p>
+      </div>
+      <div class="bg-zinc-900/60 border border-zinc-800 p-4 rounded-xl">
+        <p class="text-xs text-zinc-400">Total Paket Aktif</p>
+        <p id="stat-produk" class="text-xl font-extrabold text-blue-400 mt-1">0</p>
+      </div>
+    </div>
+
+    <div class="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5">
+      <h2 class="text-sm font-bold text-white mb-4 uppercase tracking-wider font-mono-code">10 Pesanan Terakhir</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-zinc-800 text-zinc-400 font-mono-code">
+              <th class="pb-2">Order ID</th>
+              <th class="pb-2">Waktu</th>
+              <th class="pb-2">Nama</th>
+              <th class="pb-2">Paket</th>
+              <th class="pb-2">Nominal</th>
+              <th class="pb-2">Status</th>
+            </tr>
+          </thead>
+          <tbody id="table-orders" class="divide-y divide-zinc-800/50">
+            <tr>
+              <td colspan="6" class="py-4 text-center text-zinc-500">Memuat riwayat pesanan...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    google.script.run.withSuccessHandler(function(data) {
+      document.getElementById('stat-omzet').innerText = 'Rp ' + Number(data.totalOmzet).toLocaleString('id-ID');
+      document.getElementById('stat-pesanan').innerText = data.totalPesanan;
+      document.getElementById('stat-produk').innerText = data.totalProduk;
+
+      var tbody = document.getElementById('table-orders');
+      if (!data.riwayat || data.riwayat.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-zinc-500">Belum ada pesanan masuk.</td></tr>';
+        return;
+      }
+
+      var rows = '';
+      data.riwayat.forEach(function(row) {
+        rows += `
+          <tr class="hover:bg-zinc-800/30 transition">
+            <td class="py-2.5 font-mono-code text-cyan-400 font-bold">${row[0]}</td>
+            <td class="py-2.5 text-zinc-400">${row[1]}</td>
+            <td class="py-2.5 text-white">${row[2]}</td>
+            <td class="py-2.5 text-zinc-300">${row[4]}</td>
+            <td class="py-2.5 font-mono-code font-bold text-white">Rp ${Number(row[5]).toLocaleString('id-ID')}</td>
+            <td class="py-2.5">
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono-code bg-amber-500/10 text-amber-300 border border-amber-500/20">${row[6]}</span>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = rows;
+    }).getAdminStats();
+  </script>
+</body>
+</html>
